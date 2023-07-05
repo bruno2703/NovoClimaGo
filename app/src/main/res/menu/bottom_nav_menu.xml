@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item
+        android:id="@+id/miHome"
+        android:title="Home"
+        android:icon="@drawable/ic_home" />
+
+    <item
+        android:id="@+id/miConfig"
+        android:title="Configuracoes"
+        android:icon="@drawable/ic_config" />
+
+    <item
+        android:id="@+id/miSocial"
+        android:title="Social"
+        android:icon="@drawable/ic_social" />
+
+    <item
+        android:id="@+id/miLocais"
+        android:title="Locais"
+        android:icon="@drawable/ic_locais" />
+
+</menu>

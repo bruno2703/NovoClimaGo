@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".InicialActivity">
+
+    <ImageView
+        android:id="@+id/background"
+        android:layout_width="411dp"
+        android:layout_height="731dp"
+        android:background="@drawable/background_borrado"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <TextView
+        android:id="@+id/tvCidade"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="72dp"
+        android:text="@string/quixad"
+        android:textSize="70sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/background" />
+
+    <TextView
+        android:id="@+id/tvTemperatura"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/_29"
+        android:textSize="80sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@+id/tvCidade"
+        app:layout_constraintStart_toStartOf="@+id/tvCidade"
+        app:layout_constraintTop_toBottomOf="@+id/tvCidade" />
+
+    <ImageView
+        android:id="@+id/ivSol"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="56dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sun"
+        app:layout_constraintEnd_toEndOf="@+id/tvTemperatura"
+        app:layout_constraintStart_toStartOf="@+id/tvTemperatura"
+        app:layout_constraintTop_toBottomOf="@+id/tvTemperatura" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
