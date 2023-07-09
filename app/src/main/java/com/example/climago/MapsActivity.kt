@@ -9,21 +9,40 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+
+data class WeatherResponse(
+    val weather: List<Weather>,
+    val main: Main,
+    val name: String
+)
+
+data class Main(
+    val temp: Double
+)
+
+data class Weather(
+    val description: String
+)
 
 
 data class Response(
@@ -68,10 +87,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             getLocationAndUpdateCityName()
         }
 
+        val btnSave = findViewById<Button>(R.id.btnSave)
+        btnSave.setOnClickListener {
+            // Código para salvar as informações]
 
+        }
 
 
     }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -118,10 +142,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
     // Método chamado quando o mapa está pronto para ser usado
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
 
         map = googleMap
 
+        // habilita a localização do usuário
+        map.isMyLocationEnabled = true
+
+        // Obtenha a última localização conhecida do usuário.
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            // obtenha a latitude e a longitude da última localização conhecida
+            val latLng = LatLng(location?.latitude!!, location.longitude)
+
+            // adicione um marcador na última localização conhecida
+            map.addMarker(MarkerOptions().position(latLng).title("Você está aqui"))
+
+            // mova a câmera para a última localização conhecida
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+
+        }
     }
 
 
@@ -130,6 +171,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)  // Solicita que o mapa seja carregado de forma assíncrona
     }
+
+    private fun getWeather(cityName: String?) {
+        val request = Request.Builder()
+            .url("https://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                Log.d("ken4","http://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
+                Log.e("Error", "Network request failed", e)
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                    val jsonData = response.body?.string()
+                    val adapter = moshi.adapter(WeatherResponse::class.java)
+                    val weatherResponse = adapter.fromJson(jsonData)
+
+                    Log.d("ken","$weatherResponse")
+
+                    val temperature = weatherResponse?.main?.temp
+                    val weatherDescription = weatherResponse?.weather?.get(0)?.description
+
+                    val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
+
+                    runOnUiThread {
+                        Toast.makeText(this@MapsActivity, "Weather in ${weatherResponse?.name}: $temperature°C, $weatherDescription", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
 
 
 
@@ -162,8 +238,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val cityName = cityNameMatchResult?.groups?.get("city")?.value
                     Log.d("aaaaab", "$cityName")
 
+
+
                     Log.d("ryu", "$jsonData")
+                    Log.d("mama", "$jsonData")
+                    getWeather(cityName)
                     runOnUiThread {
+
                         //findViewById<TextView>(R.id.cityName).text = cityName
                         Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
                     }
