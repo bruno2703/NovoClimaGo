@@ -179,7 +179,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.d("ken4","http://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
                 Log.e("Error", "Network request failed", e)
             }
 
@@ -199,7 +198,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
 
                     runOnUiThread {
-                        Toast.makeText(this@MapsActivity, "Weather in ${weatherResponse?.name}: $temperature°C, $weatherDescription", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MapsActivity, "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherDescription", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -236,12 +235,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val cityNamePattern = " (?<city>[^-+,]+)".toRegex()
                     val cityNameMatchResult = cityNamePattern.find(geocodeResponse?.plusCode?.compoundCode ?: "")
                     val cityName = cityNameMatchResult?.groups?.get("city")?.value
-                    Log.d("aaaaab", "$cityName")
 
-
-
-                    Log.d("ryu", "$jsonData")
-                    Log.d("mama", "$jsonData")
                     getWeather(cityName)
                     runOnUiThread {
 
