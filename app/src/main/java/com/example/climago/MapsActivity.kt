@@ -2,6 +2,7 @@ package com.example.climago
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -23,6 +24,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -44,6 +48,9 @@ data class Weather(
     val description: String
 )
 
+data class Cidade(
+    val cidade: String
+)
 
 data class Response(
     @Json(name = "plus_code") val plusCode: PlusCode,
@@ -63,10 +70,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private val client = OkHttpClient()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private val LOCATION_PERMISSION_REQUEST = 1
+
+
     // Declara uma variável do tipo GoogleMap
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    private var NomeCidade = Cidade("Nenhuma")
 
 
     // O método onCreate é chamado quando a atividade é criada
@@ -91,7 +101,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btnSave.setOnClickListener {
             // Código para salvar as informações]
 
+            SalvarCidade(NomeCidade)
+
         }
+
 
 
     }
@@ -237,6 +250,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val cityName = cityNameMatchResult?.groups?.get("city")?.value
 
                     getWeather(cityName)
+
+                    NomeCidade = Cidade("$cityName")
                     runOnUiThread {
 
                         //findViewById<TextView>(R.id.cityName).text = cityName
@@ -248,6 +263,39 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
+
+//Firebase part
+
+    val db = FirebaseFirestore.getInstance()
+
+
+    private fun SalvarCidade(cidade: Cidade){
+        db.collection("cidades")
+            .whereEqualTo("cidade", cidade.cidade)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    // A cidade não existe, pode ser adicionada
+                    db.collection("cidades")
+                        .add(cidade)
+                        .addOnSuccessListener { documentReference ->
+                            Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
+                            Toast.makeText(this, "Local Salvo: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Error adding document", e)
+                            Toast.makeText(this, "Falha em salvar: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    // A cidade já existe
+                    Toast.makeText(this, "Cidade já existe: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Erro na verificação da cidade", e)
+                Toast.makeText(this, "Erro na verificação da cidade: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+            }
+    }
 
 
 

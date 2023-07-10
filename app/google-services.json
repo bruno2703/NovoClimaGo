@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "508135535188",
+    "project_id": "climago-aa1d7",
+    "storage_bucket": "climago-aa1d7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508135535188:android:eec4e5f3c173173555b3c1",
+        "android_client_info": {
+          "package_name": "com.example.climago"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "508135535188-6mocfrkbggfvufi38ql7f3og1d1psgob.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6xG-h6tsfRSSMt-SK2cyRvoU5GbRfiKo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "508135535188-6mocfrkbggfvufi38ql7f3og1d1psgob.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
