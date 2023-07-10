@@ -28,7 +28,6 @@ class LocaisFragment : Fragment(R.layout.fragment_locais) {
             startActivity(intent)
         }
 
-        CarregarCidades()
     }
 
     private fun initRecyclerView(){
@@ -50,9 +49,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais) {
 
     val db = FirebaseFirestore.getInstance()
 
-
-
-private fun CarregarCidades(){
+    private fun CarregarCidades(){
         db.collection("cidades")
             .get()
             .addOnSuccessListener { result ->
@@ -65,5 +62,8 @@ private fun CarregarCidades(){
             }
     }
 
-
+    override fun onResume() {
+        super.onResume()
+        CarregarCidades()
+    }
 }
