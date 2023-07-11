@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.climago.AdapterLocais
 import com.example.climago.MapsActivity
 import com.example.climago.R
-import com.example.climago.WeatherResponse
+import com.example.climago.AUXILIAR.WeatherResponse
 import com.example.climago.databinding.FragmentLocaisBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.moshi.Moshi

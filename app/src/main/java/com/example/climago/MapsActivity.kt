@@ -11,7 +11,6 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,52 +34,19 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 
-data class WeatherResponse(
-    val weather: List<Weather>,
-    val main: Main,
-    val name: String
-)
 
-data class Main(
-    val temp: Double
-)
-
-data class Weather(
-    val description: String
-)
-
-data class Cidade(
-    val cidade: String
-)
-
-data class Response(
-    @Json(name = "plus_code") val plusCode: PlusCode,
-    @Json(name = "results") val results: List<Any> // You can replace Any with the actual type of your results
-)
-
-data class PlusCode(
-    @Json(name = "compound_code") val compoundCode: String,
-    @Json(name = "global_code") val globalCode: String
-)
-data class Result(val address_components: List<AddressComponent>)
-data class AddressComponent(val long_name: String, val types: List<String>)
-
-// A classe MapsActivity herda de AppCompatActivity e implementa a interface OnMapReadyCallback
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
+    private var marker: Marker? = null
     private val client = OkHttpClient()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private val LOCATION_PERMISSION_REQUEST = 1
 
-
-    // Declara uma variável do tipo GoogleMap
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    private var NomeCidade = Cidade("Nenhuma")
+    private var NomeCidade = AUXILIAR.Cidade("Nenhuma")
 
-
-    // O método onCreate é chamado quando a atividade é criada
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -99,32 +66,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val btnSave = findViewById<Button>(R.id.btnSave)
         btnSave.setOnClickListener {
-            // Código para salvar as informações]
-
             SalvarCidade(NomeCidade)
-
         }
-
-
-
     }
 
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     getLocationAndUpdateCityName()
                 } else {
-                    // Permission denied. You can add logic here to handle this case
                     Toast.makeText(this@MapsActivity, "Permissão negada", Toast.LENGTH_SHORT).show()
-
                 }
                 return
             }
             else -> {
-                // Ignore other request codes
                 Toast.makeText(this@MapsActivity, "Erro em conseguir a localização", Toast.LENGTH_SHORT).show()
             }
         }
@@ -135,16 +96,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
-            1000L,   // Tempo mínimo entre as atualizações: 1000 milissegundos (1 segundo)
-            10f,     // Distância mínima entre as atualizações: 10 metros
+            1000L,
+            10f,
             object : LocationListener {
                 override fun onLocationChanged(location: Location) {
+                    Log.d("Ryu", "haduken")
 
-                    Log.d(
-                        "Ryu",
-                    "haduken"
-                    )
-                    getCityName(location.latitude, location.longitude)
+                    // Obter nome da cidade e tratar diretamente
+                    getCityName(location.latitude, location.longitude) { cityName ->
+                        runOnUiThread {
+                            // Realizar as operações necessárias com o nome da cidade aqui
+                            // Por exemplo, exibir um toast com o nome da cidade
+                            Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
 
             }
@@ -152,37 +117,47 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-
-
-    // Método chamado quando o mapa está pronto para ser usado
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
-
         map = googleMap
-
-        // habilita a localização do usuário
         map.isMyLocationEnabled = true
-
-        // Obtenha a última localização conhecida do usuário.
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            // obtenha a latitude e a longitude da última localização conhecida
             val latLng = LatLng(location?.latitude!!, location.longitude)
-
-            // adicione um marcador na última localização conhecida
             map.addMarker(MarkerOptions().position(latLng).title("Você está aqui"))
-
-            // mova a câmera para a última localização conhecida
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
+        }
 
+        // Adicionar listener de clique no mapa
+        map.setOnMapClickListener { latLng ->
+            // Remover marcador anterior, se existir
+            marker?.remove()
+
+            // Adicionar novo marcador
+            marker = map.addMarker(MarkerOptions().position(latLng).title("Clique para salvar"))
+
+            // Obter nome da cidade e exibir toast
+            getCityName(latLng.latitude, latLng.longitude) { cityName ->
+                runOnUiThread {
+                    marker?.title = cityName // Definir o título do marcador como o nome da cidade
+
+                    // Salvar a cidade
+                    SalvarCidade(AUXILIAR.Cidade(cityName ?: ""))
+
+                    Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
 
-    // Método para configurar o mapa
+
+
+
+
     private fun setupMap() {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)  // Solicita que o mapa seja carregado de forma assíncrona
+        mapFragment.getMapAsync(this)
     }
 
     private fun getWeather(cityName: String?) {
@@ -200,34 +175,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                     val jsonData = response.body?.string()
-                    val adapter = moshi.adapter(WeatherResponse::class.java)
+                    val adapter = moshi.adapter(AUXILIAR.WeatherResponse::class.java)
                     val weatherResponse = adapter.fromJson(jsonData)
 
-                    Log.d("ken","$weatherResponse")
+                    Log.d("ken", "$weatherResponse")
 
                     val temperature = weatherResponse?.main?.temp
                     val weatherDescription = weatherResponse?.weather?.get(0)?.description
 
-                    val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
+                    val weatherData = Pair(temperature, weatherDescription)
 
                     runOnUiThread {
-                        Toast.makeText(this@MapsActivity, "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherDescription", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@MapsActivity,
+                            "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherDescription",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
         })
     }
 
-
-
-
-
-
-
-
-
-
-    private fun getCityName(latitude: Double, longitude: Double) {
+    private fun getCityName(latitude: Double, longitude: Double, callback: (String) -> Unit) {
         val request = Request.Builder()
             .url("https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=AIzaSyBdsoPSf-UXk8p5uEr_OKpMgwKxCA-W4UQ")
             .build()
@@ -242,61 +212,57 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
                     val jsonData = response.body?.string()
-                    val adapter = moshi.adapter(Response::class.java)
+                    val adapter = moshi.adapter(AUXILIAR.Response::class.java)
                     val geocodeResponse = adapter.fromJson(jsonData)
 
                     val cityNamePattern = " (?<city>[^-+,]+)".toRegex()
-                    val cityNameMatchResult = cityNamePattern.find(geocodeResponse?.plusCode?.compoundCode ?: "")
+                    val cityNameMatchResult =
+                        cityNamePattern.find(geocodeResponse?.plusCode?.compoundCode ?: "")
                     val cityName = cityNameMatchResult?.groups?.get("city")?.value
 
                     getWeather(cityName)
 
-                    NomeCidade = Cidade("$cityName")
+                    NomeCidade = AUXILIAR.Cidade(cityName ?: "")
                     runOnUiThread {
-
-                        //findViewById<TextView>(R.id.cityName).text = cityName
                         Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
                     }
+
+                    // Chamada do callback com o nome da cidade
+                    callback(cityName ?: "")
                 }
             }
         })
     }
 
 
+    private fun SalvarCidade(cidade: AUXILIAR.Cidade) {
+        val db = FirebaseFirestore.getInstance()
+        val nomeCidade = marker?.title ?: return // Verificar se há um marcador
 
-//Firebase part
-
-    val db = FirebaseFirestore.getInstance()
-
-
-    private fun SalvarCidade(cidade: Cidade){
+        val cidadeMarcador = AUXILIAR.Cidade(nomeCidade)
         db.collection("cidades")
-            .whereEqualTo("cidade", cidade.cidade)
+            .whereEqualTo("cidade", cidadeMarcador.cidade)
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    // A cidade não existe, pode ser adicionada
                     db.collection("cidades")
-                        .add(cidade)
+                        .add(cidadeMarcador)
                         .addOnSuccessListener { documentReference ->
                             Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-                            Toast.makeText(this, "Local Salvo: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Local Salvo: ${cidadeMarcador.cidade}", Toast.LENGTH_SHORT).show()
                         }
                         .addOnFailureListener { e ->
                             Log.w(TAG, "Error adding document", e)
-                            Toast.makeText(this, "Falha em salvar: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Falha em salvar: ${cidadeMarcador.cidade}", Toast.LENGTH_SHORT).show()
                         }
                 } else {
-                    // A cidade já existe
-                    Toast.makeText(this, "Cidade já existe: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Cidade já existe: ${cidadeMarcador.cidade}", Toast.LENGTH_SHORT).show()
                 }
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Erro na verificação da cidade", e)
-                Toast.makeText(this, "Erro na verificação da cidade: ${cidade.cidade}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Erro na verificação da cidade: ${cidadeMarcador.cidade}", Toast.LENGTH_SHORT).show()
             }
     }
-
-
 
 }
