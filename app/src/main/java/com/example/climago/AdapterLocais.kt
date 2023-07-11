@@ -27,7 +27,7 @@ class AdapterLocais(
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-        val textLocais: TextView = itemView.findViewById(R.id.RVtvNome)
-        val textTemperature: TextView = itemView.findViewById(R.id.RVbtSeguir)
+        val textLocais: TextView = itemView.findViewById(R.id.RVtvNameLocal)
+        val textTemperature: TextView = itemView.findViewById(R.id.RVbtTemperatura)
     }
 }

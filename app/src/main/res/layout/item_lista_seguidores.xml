@@ -23,25 +23,25 @@
     </androidx.cardview.widget.CardView>
 
     <TextView
-        android:id="@+id/RVtvNome"
+        android:id="@+id/RVtvPerson"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="30dp"
         android:hint="Nome"
         app:layout_constraintBottom_toBottomOf="@+id/cardView"
-        app:layout_constraintEnd_toStartOf="@+id/RVbtSeguir"
+        app:layout_constraintEnd_toStartOf="@+id/RVbtFollow"
         app:layout_constraintStart_toEndOf="@+id/cardView"
         app:layout_constraintTop_toTopOf="@+id/cardView" />
 
     <Button
-        android:id="@+id/RVbtSeguir"
+        android:id="@+id/RVbtFollow"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
         android:hint="Seguir"
-        app:layout_constraintBottom_toBottomOf="@+id/RVtvNome"
+        app:layout_constraintBottom_toBottomOf="@+id/RVtvPerson"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/RVtvNome" />
+        app:layout_constraintTop_toTopOf="@+id/RVtvPerson" />
 
     <ImageView
         android:layout_width="match_parent"

@@ -20,43 +20,46 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.checkerframework.checker.units.qual.Temperature
 import java.io.IOException
 import java.net.URLEncoder
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 
-class LocaisFragment : Fragment(R.layout.fragment_locais) {
+class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by MainScope() {
     private val client = OkHttpClient()
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     private lateinit var binding: FragmentLocaisBinding
 
     val cityNames = mutableListOf<String>()
+    val TemperatureValues = mutableListOf<String>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentLocaisBinding.bind(view)
 
-        initRecyclerView()
 
         binding.btMaps.setOnClickListener {
             val intent = Intent(requireActivity(), MapsActivity::class.java)
             startActivity(intent)
         }
 
+
+
     }
 
+    //manda as listas pro adapter
     private fun initRecyclerView(){
-        binding.RCListaSeguidores.layoutManager = LinearLayoutManager(requireContext())
-        binding.RCListaSeguidores.setHasFixedSize(true)
-        binding.RCListaSeguidores.adapter = AdapterLocais(getList(),getTemp())
+        Log.d("Recycle","Verificando; $cityNames --- $TemperatureValues")
+        binding.RCListaLocais.layoutManager = LinearLayoutManager(requireContext())
+        binding.RCListaLocais.setHasFixedSize(true)
+        binding.RCListaLocais.adapter = AdapterLocais(getList(), getTemp())
     }
 
-    private fun getList() = listOf(
-        "Fortaleza", "Juazeiro do Norte", "Caucaia", "Maracanaú", "Sobral"
-    )
+    private fun getList() = cityNames
 
-    private fun getTemp() = listOf(
-        "22°C", "28°C", "15°C", "33°C", "19°C"
-    )
+    private fun getTemp() = TemperatureValues
 
 
     //Firebase
@@ -64,71 +67,79 @@ class LocaisFragment : Fragment(R.layout.fragment_locais) {
     val db = FirebaseFirestore.getInstance()
 
 
-    private fun CarregarCidades(){
+    private suspend fun CarregarCidades() {
 
+        val result = db.collection("cidades").get().await()
 
-        db.collection("cidades")
-            .get()
-            .addOnSuccessListener { result ->
-                for (city in result) {
-                    city.data["cidade"]?.let {
-                        cityNames.add(it.toString())
-                    }
-                }
+        for (city in result) {
+            city.data["cidade"]?.let {
+                cityNames.add(it.toString())
 
-                // Agora a variável cityNames contém todos os nomes das cidades
-                Log.d("minha", cityNames.toString())
+                // Aguardamos a função getWeather
+                getWeather(it.toString())
             }
-            .addOnFailureListener { exception ->
-                Log.w("minha", "Error getting documents.", exception)
-            }
-    }
+            Log.d("Lista cidades","Mutable List; $cityNames")
+        }
 
-
-
-    //Log.d("minha", "${city.id} => ${city.data}")
-
-    override fun onResume() {
-        super.onResume()
-        CarregarCidades()
+        Log.d("Lista cidades", cityNames.toString())
     }
 
     //API
 
-    private fun getWeather(cityName: String?) {
-        val encodedCityName = URLEncoder.encode(cityName, "utf-8")
-        val request = Request.Builder()
-            .url("https://api.openweathermap.org/data/2.5/weather?q=$encodedCityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
-            .build()
+    private suspend fun getWeather(cityName: String?) {
+        withContext(Dispatchers.IO) {
+            val encodedCityName = URLEncoder.encode(cityName, "utf-8")
+            val request = Request.Builder()
+                .url("https://api.openweathermap.org/data/2.5/weather?q=$encodedCityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
+                .build()
 
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.e("Error", "Network request failed", e)
+            val response = client.newCall(request).execute()
+
+            if (!response.isSuccessful) {
+                Log.e("Error", "Network request failed: $response")
+                return@withContext
             }
 
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val jsonData = response.body?.string()
+            val adapter = moshi.adapter(WeatherResponse::class.java)
+            val weatherResponse = adapter.fromJson(jsonData)
 
-                    val jsonData = response.body?.string()
-                    val adapter = moshi.adapter(WeatherResponse::class.java)
-                    val weatherResponse = adapter.fromJson(jsonData)
+            Log.d("Weather", "$weatherResponse")
 
-                    Log.d("Weather", "$weatherResponse")
+            val temperature = weatherResponse?.main?.temp
+            val weatherDescription = weatherResponse?.weather?.get(0)?.description
+            val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
 
-                    val temperature = weatherResponse?.main?.temp
-                    val weatherDescription = weatherResponse?.weather?.get(0)?.description
-
-                    val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
-
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(activity, "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherDescription", Toast.LENGTH_SHORT).show()
-                    }
-                }
+            withContext(Dispatchers.Main) {
+                TemperatureValues.add(temperature.toString())
+                Log.d("Lista temperatura", "Nome da cidade $cityName --- Temperatura $temperature --- Mutable List; $TemperatureValues")
             }
-        })
+        }
     }
 
 
+    //Limpa as listas
+    private fun ClearLists(){
+        cityNames.clear()
+        TemperatureValues.clear()
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        manutencao()
+    }
+
+    private fun manutencao() {
+        ClearLists()
+
+        // Iniciamos uma corrotina para rodar as operações de rede e banco de dados
+        launch {
+            CarregarCidades()
+
+            // Chamamos initRecyclerView somente depois que CarregarCidades tiver terminado
+            initRecyclerView()
+        }
+    }
 
 }

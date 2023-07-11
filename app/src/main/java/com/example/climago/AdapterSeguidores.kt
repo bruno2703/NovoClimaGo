@@ -14,8 +14,8 @@ data class User(val username: String, var isFollowing: Boolean)
 class AdapterSeguidores(private val users: List<User>) : RecyclerView.Adapter<AdapterSeguidores.ViewHolder>()  {
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val username: TextView = view.findViewById(R.id.RVtvNome)
-        val followButton: Button = view.findViewById(R.id.RVbtSeguir)
+        val username: TextView = view.findViewById(R.id.RVtvPerson)
+        val followButton: Button = view.findViewById(R.id.RVbtFollow)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
