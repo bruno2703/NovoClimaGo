@@ -141,9 +141,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 runOnUiThread {
                     marker?.title = cityName // Definir o título do marcador como o nome da cidade
 
-                    // Salvar a cidade
-                    SalvarCidade(AUXILIAR.Cidade(cityName ?: ""))
-
                     Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -223,9 +220,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     getWeather(cityName)
 
                     NomeCidade = AUXILIAR.Cidade(cityName ?: "")
-                    runOnUiThread {
-                        Toast.makeText(this@MapsActivity, "Cidade: $cityName", Toast.LENGTH_SHORT).show()
-                    }
+
 
                     // Chamada do callback com o nome da cidade
                     callback(cityName ?: "")
