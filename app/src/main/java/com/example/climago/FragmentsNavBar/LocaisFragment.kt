@@ -26,6 +26,7 @@ import java.io.IOException
 import java.net.URLEncoder
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
+import com.example.climago.BuildConfig
 
 class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by MainScope() {
     private val client = OkHttpClient()
@@ -38,6 +39,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
     val estadoTempo = mutableListOf<String>()
 
     val cityIds = mutableListOf<String>()
+
+    private val tempoApiKey = BuildConfig.API_KEY_TEMPO
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -102,7 +105,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
         withContext(Dispatchers.IO) {
             val encodedCityName = URLEncoder.encode(cityName, "utf-8")
             val request = Request.Builder()
-                .url("https://api.openweathermap.org/data/2.5/weather?q=$encodedCityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
+                .url("https://api.openweathermap.org/data/2.5/weather?q=$encodedCityName&appid=$tempoApiKey&units=metric")
                 .build()
 
             val response = client.newCall(request).execute()

@@ -7,6 +7,8 @@ plugins {
 
 }
 
+
+
 android {
     namespace 'com.example.climago'
     compileSdk 33
@@ -19,6 +21,16 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+
+        // Carrega as chaves de API do arquivo .properties
+        def apiKeysPropertiesFile = rootProject.file("local.properties")
+        def apiKeysProperties = new Properties()
+        apiKeysProperties.load(new FileInputStream(apiKeysPropertiesFile))
+
+        // Configura as chaves de API como campos estáticos na classe BuildConfig
+        buildConfigField 'String', 'API_KEY_MAPS', "\"${apiKeysProperties['MAPS_API_KEY']}\""
+        buildConfigField 'String', 'API_KEY_TEMPO', "\"${apiKeysProperties['TEMPO_API_KEY']}\""
     }
 
     buildTypes {
@@ -36,7 +48,12 @@ android {
     }
     buildFeatures {
         viewBinding true
+
+        buildConfig = true
     }
+
+
+
 }
 
 dependencies {

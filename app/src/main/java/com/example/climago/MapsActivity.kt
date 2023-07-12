@@ -33,6 +33,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import com.example.climago.BuildConfig
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -46,6 +47,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var NomeCidade = AUXILIAR.Cidade("Nenhuma")
+
+    private val mapsApiKey = BuildConfig.API_KEY_MAPS
+    private val tempoApiKey = BuildConfig.API_KEY_TEMPO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -162,7 +166,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getWeather(cityName: String?) {
         val request = Request.Builder()
-            .url("https://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=207b8be31a9062d5eff256f1acb51668&units=metric")
+            .url("https://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=$tempoApiKey&units=metric")
             .build()
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
@@ -177,7 +181,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val jsonData = response.body?.string()
                     val adapter = moshi.adapter(AUXILIAR.WeatherResponse::class.java)
                     val weatherResponse = adapter.fromJson(jsonData)
-                    
+
 
                     val temperature = weatherResponse?.main?.temp
                     val weatherMain = weatherResponse?.weather?.get(0)?.main
@@ -193,7 +197,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun getCityName(latitude: Double, longitude: Double, callback: (String) -> Unit) {
         val request = Request.Builder()
-            .url("https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=AIzaSyBdsoPSf-UXk8p5uEr_OKpMgwKxCA-W4UQ")
+            .url("https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$mapsApiKey")
             .build()
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
