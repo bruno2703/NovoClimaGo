@@ -124,7 +124,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             val latLng = LatLng(location?.latitude!!, location.longitude)
-            map.addMarker(MarkerOptions().position(latLng).title("Você está aqui"))
+            getCityName(latLng.latitude, latLng.longitude) { cityName ->
+                runOnUiThread{
+                    marker = map.addMarker(MarkerOptions().position(latLng).title(cityName))
+                }
+            }
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
         }
 
@@ -183,13 +187,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                     val weatherData = Pair(temperature, weatherMain)
 
-                    runOnUiThread {
-                        Toast.makeText(
-                            this@MapsActivity,
-                            "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherMain",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+
                 }
             }
         })

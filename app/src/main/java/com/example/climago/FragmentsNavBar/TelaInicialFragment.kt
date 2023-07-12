@@ -48,7 +48,7 @@ class TelaInicialFragment : Fragment(R.layout.fragment_tela_inicial) {
         val estadoDoTempo = sharedPref?.getString("estadoDoTempo", "default")
 
         NomeCidade.text = cidade
-        Temperatura.text = temperatura
+        Temperatura.text = temperatura + "°C"
 
         //converte para string,chama função, pega context
         val string: String = estadoDoTempo.orEmpty()

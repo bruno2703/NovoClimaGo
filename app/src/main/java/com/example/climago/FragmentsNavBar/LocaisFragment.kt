@@ -57,7 +57,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
         pacote(cityNames.last(),TemperatureValues.last(),estadoTempo.last())
         binding.RCListaLocais.layoutManager = LinearLayoutManager(requireContext())
         binding.RCListaLocais.setHasFixedSize(true)
-        binding.RCListaLocais.adapter = AdapterLocais(getList(), getTemp())
+        binding.RCListaLocais.adapter = AdapterLocais(requireContext(),getList(), getTemp(),getMain())
     }
 
     private fun getList() = cityNames
