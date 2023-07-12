@@ -7,11 +7,16 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.climago.databinding.ActivityCadastroBinding
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class CadastroActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCadastroBinding
-    private lateinit var sharedPreferences: SharedPreferences
+
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,9 +25,12 @@ class CadastroActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        sharedPreferences = getSharedPreferences("MY_APP", Context.MODE_PRIVATE)
 
         binding.btCadastrar.setOnClickListener { registerUser() }
+
+        FirebaseApp.initializeApp(this)
+        auth = FirebaseAuth.getInstance()
+
     }
 
     private fun registerUser() {
@@ -31,13 +39,28 @@ class CadastroActivity : AppCompatActivity() {
         val password = binding.etSenha.text.toString()
 
         if (username.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
-            sharedPreferences.edit().apply {
-                putString("USERNAME", username)
-                putString("EMAIL", email)
-                putString("PASSWORD", password)
-                apply()
-            }
-            Toast.makeText(this, "Registro bem-sucedido!", Toast.LENGTH_SHORT).show()
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        val profileUpdates = UserProfileChangeRequest.Builder()
+                            .setDisplayName(username)
+                            .build()
+
+                        user?.updateProfile(profileUpdates)
+                            ?.addOnCompleteListener { updateTask ->
+                                if (updateTask.isSuccessful) {
+                                    Toast.makeText(this, "Registro bem-sucedido!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(this, "Erro ao atualizar perfil do usuário", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
+                        navigateToLoginScreen()
+                    } else {
+                        Toast.makeText(this, "Erro ao registrar usuário", Toast.LENGTH_SHORT).show()
+                    }
+                }
         } else {
             Toast.makeText(this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
         }

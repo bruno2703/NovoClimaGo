@@ -7,11 +7,16 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.climago.databinding.ActivityLoginBinding
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var sharedPreferences: SharedPreferences
+
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,26 +25,34 @@ class LoginActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        sharedPreferences = getSharedPreferences("MY_APP", Context.MODE_PRIVATE)
 
         binding.BotaoLogin.setOnClickListener { validateLogin() }
         binding.botaoCadastro.setOnClickListener { navigateToRegisterScreen() }
+
+        FirebaseApp.initializeApp(this)
+        auth = FirebaseAuth.getInstance()
+
     }
 
     private fun validateLogin() {
-        val username = binding.campoUsuario.text.toString()
+        val email = binding.campoUsuario.text.toString()
         val password = binding.campoSenha.text.toString()
 
-        val savedUsername = sharedPreferences.getString("USERNAME", null)
-        val savedPassword = sharedPreferences.getString("PASSWORD", null)
-
-        if (username == savedUsername && password == savedPassword) {
-            Toast.makeText(this, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
-            navigateToInicialScreen()
+        if (email.isNotBlank() && password.isNotBlank()) {
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this, "Login bem-sucedido!", Toast.LENGTH_SHORT).show()
+                        navigateToInicialScreen()
+                    } else {
+                        Toast.makeText(this, "Usuário ou senha inválidos", Toast.LENGTH_SHORT).show()
+                    }
+                }
         } else {
-            Toast.makeText(this, "Usuário ou senha inválidos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Por favor, preencha todos os campos", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun navigateToRegisterScreen() {
         Intent(this, CadastroActivity::class.java).also {
