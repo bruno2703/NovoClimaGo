@@ -14,6 +14,10 @@ class AUXILIAR {
         val temp: Double
     )
 
+    data class id(
+        val id: String
+    )
+
     data class Weather(
         val main: String
     )

@@ -37,6 +37,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
     val TemperatureValues = mutableListOf<String>()
     val estadoTempo = mutableListOf<String>()
 
+    val cityIds = mutableListOf<String>()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentLocaisBinding.bind(view)
@@ -57,7 +59,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
         pacote(cityNames.last(),TemperatureValues.last(),estadoTempo.last())
         binding.RCListaLocais.layoutManager = LinearLayoutManager(requireContext())
         binding.RCListaLocais.setHasFixedSize(true)
-        binding.RCListaLocais.adapter = AdapterLocais(requireContext(),getList(), getTemp(),getMain())
+        binding.RCListaLocais.adapter = AdapterLocais(requireContext(),getList(), getTemp(),getMain(), getIds())
     }
 
     private fun getList() = cityNames
@@ -65,6 +67,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
     private fun getTemp() = TemperatureValues
 
     private fun getMain() = estadoTempo
+
+    private fun getIds() = cityIds
 
 
     //Firebase
@@ -79,9 +83,12 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
         for (city in result) {
             city.data["cidade"]?.let {
                 cityNames.add(it.toString())
+                cityIds.add(city.id)
 
                 // Aguardamos a função getWeather
                 getWeather(it.toString())
+
+
             }
             Log.d("Lista cidades","Mutable List; $cityNames")
         }
@@ -118,6 +125,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
             withContext(Dispatchers.Main) {
                 TemperatureValues.add(temperature.toString())
                 estadoTempo.add(weatherMain.toString())
+
+
                 Log.d("Lista temperatura", "Nome da cidade $cityName --- Temperatura $temperature --- Mutable List; $TemperatureValues")
             }
         }

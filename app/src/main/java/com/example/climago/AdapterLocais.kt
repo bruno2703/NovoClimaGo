@@ -17,7 +17,8 @@ class AdapterLocais(
     private val context: Context,
     private val LocaisList: List<String>,
     private val TemperatureList: List<String>,
-    private val ImageList: List<String>
+    private val ImageList: List<String>,
+    private val IdsList: List<String>
 ) : RecyclerView.Adapter<AdapterLocais.MyViewHolder>() {
     private val DrawableList = mutableListOf<Drawable>()
 
@@ -31,7 +32,7 @@ class AdapterLocais(
             functionImage.ImageSelect(context, string)?.let { DrawableList.add(it) }
         }
 
-        return MyViewHolder(itemView, LocaisList, TemperatureList,ImageList)
+        return MyViewHolder(itemView, LocaisList, TemperatureList,ImageList,IdsList,context)
     }
 
     override fun getItemCount() = LocaisList.size
@@ -45,7 +46,7 @@ class AdapterLocais(
         holder.ImagTempo.setImageDrawable(DrawableList[position])
     }
 
-    class MyViewHolder(itemView: View, private val LocaisList: List<String>, private val TemperatureList: List<String>, private val ImageList: List<String>) : RecyclerView.ViewHolder(itemView) {
+    class MyViewHolder(itemView: View, private val LocaisList: List<String>, private val TemperatureList: List<String>, private val ImageList: List<String>, private val IdsList: List<String>, context: Context) : RecyclerView.ViewHolder(itemView) {
         val textLocais: TextView = itemView.findViewById(R.id.RVtvNameLocal)
         val textTemperature: TextView = itemView.findViewById(R.id.RVbtTemperatura)
         val ImagTempo: ImageView = itemView.findViewById(R.id.ivIconeTempo)
@@ -65,6 +66,20 @@ class AdapterLocais(
 
                 Helper.instance.saveData()
 
+            }
+
+            itemView.setOnLongClickListener {
+                val position = getAbsoluteAdapterPosition()
+                val id = IdsList[position]
+
+                Log.d("Lon","ClickLongoDetectado")
+
+                val instancia = DeleteClass()
+                instancia.DeleteId(id)
+
+                Toast.makeText(context, "Cidade Deletada", Toast.LENGTH_SHORT).show()
+
+                true // Retorna true para indicar que o clique longo foi consumido
             }
         }
     }
