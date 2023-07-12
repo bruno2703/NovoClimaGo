@@ -178,14 +178,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     Log.d("ken", "$weatherResponse")
 
                     val temperature = weatherResponse?.main?.temp
-                    val weatherDescription = weatherResponse?.weather?.get(0)?.description
+                    val weatherMain = weatherResponse?.weather?.get(0)?.main
 
-                    val weatherData = Pair(temperature, weatherDescription)
+
+                    val weatherData = Pair(temperature, weatherMain)
 
                     runOnUiThread {
                         Toast.makeText(
                             this@MapsActivity,
-                            "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherDescription",
+                            "Tempo em ${weatherResponse?.name}: $temperature°C, $weatherMain",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

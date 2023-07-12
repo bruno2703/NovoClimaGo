@@ -15,7 +15,7 @@ class AUXILIAR {
     )
 
     data class Weather(
-        val description: String
+        val main: String
     )
 
     data class Cidade(

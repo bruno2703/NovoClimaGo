@@ -1,19 +1,19 @@
 package com.example.climago
 
-import android.graphics.drawable.Drawable
-import android.media.Image
 import android.content.Context
-
+import android.graphics.drawable.Drawable
 
 class FunctionImage {
 
+    fun ImageSelect(context: Context, description: String): Drawable? {
+        val chosenImage: String = when (description) {
+            "Thunderstorm", "Drizzle", "Rain", "Snow" -> "rain_icon"
+            "Clear" -> "sun_icon"
+            else -> "sun_clouds_icon"
+        }
 
-    fun ImageSelect(context: Context, description:String): Drawable?{
-
-
-        val resourceId = context.resources.getIdentifier(description, "drawable", context.packageName)
+        val resourceId = context.resources.getIdentifier(chosenImage, "drawable", context.packageName)
         return context.resources.getDrawable(resourceId, null)
-
     }
-
 }
+

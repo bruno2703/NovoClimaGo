@@ -35,6 +35,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
 
     val cityNames = mutableListOf<String>()
     val TemperatureValues = mutableListOf<String>()
+    val estadoTempo = mutableListOf<String>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,8 +53,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
 
     //manda as listas pro adapter
     private fun initRecyclerView(){
-        Log.d("dog","Verificando; ${cityNames.last()} --- ${TemperatureValues.last()}")
-        pacote(cityNames.last(),TemperatureValues.last())
+        Log.d("dog","Verificando; ${cityNames.last()} --- ${TemperatureValues.last()} --- ${estadoTempo.last()}")
+        pacote(cityNames.last(),TemperatureValues.last(),estadoTempo.last())
         binding.RCListaLocais.layoutManager = LinearLayoutManager(requireContext())
         binding.RCListaLocais.setHasFixedSize(true)
         binding.RCListaLocais.adapter = AdapterLocais(getList(), getTemp())
@@ -62,6 +63,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
     private fun getList() = cityNames
 
     private fun getTemp() = TemperatureValues
+
+    private fun getMain() = estadoTempo
 
 
     //Firebase
@@ -109,11 +112,12 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
             Log.d("Weather", "$weatherResponse")
 
             val temperature = weatherResponse?.main?.temp
-            val weatherDescription = weatherResponse?.weather?.get(0)?.description
-            val weatherData = Pair(temperature, weatherDescription) // Pair of temperature and description
+            val weatherMain = weatherResponse?.weather?.get(0)?.main
+            val weatherData = Pair(temperature, weatherMain) // Pair of temperature and description
 
             withContext(Dispatchers.Main) {
                 TemperatureValues.add(temperature.toString())
+                estadoTempo.add(weatherMain.toString())
                 Log.d("Lista temperatura", "Nome da cidade $cityName --- Temperatura $temperature --- Mutable List; $TemperatureValues")
             }
         }
@@ -124,6 +128,7 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
     private fun ClearLists(){
         cityNames.clear()
         TemperatureValues.clear()
+        estadoTempo.clear()
 
     }
 
@@ -139,17 +144,24 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
         launch {
             CarregarCidades()
 
-            // Chamamos initRecyclerView somente depois que CarregarCidades tiver terminado
-            initRecyclerView()
+            // We add a delay here to make sure that all getWeather calls have completed.
+            while (isActive && TemperatureValues.size < cityNames.size) {
+                delay(1000)
+            }
 
+            // Chamamos initRecyclerView somente depois que CarregarCidades e getWeather tiverem terminado
+            withContext(Dispatchers.Main) {
+                initRecyclerView()
+            }
         }
     }
 
-private fun pacote(cidade: String, temperatura: String){
-    Log.d("dog","Dentro do pacote; $cidade --- $temperatura")
+
+private fun pacote(cidade: String, temperatura: String, tempo: String){
+    Log.d("dog","Dentro do pacote; $cidade --- $temperatura --- $tempo")
     Helper.instance.cidade = cidade
     Helper.instance.temperatura = temperatura
-    Helper.instance.estadoDoTempo = "Ensolarado"
+    Helper.instance.estadoDoTempo = tempo
 
 
     Helper.instance.saveData()
