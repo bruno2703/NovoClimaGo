@@ -100,7 +100,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             10f,
             object : LocationListener {
                 override fun onLocationChanged(location: Location) {
-                    Log.d("Ryu", "haduken")
 
                     // Obter nome da cidade e tratar diretamente
                     getCityName(location.latitude, location.longitude) { cityName ->
@@ -178,8 +177,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val jsonData = response.body?.string()
                     val adapter = moshi.adapter(AUXILIAR.WeatherResponse::class.java)
                     val weatherResponse = adapter.fromJson(jsonData)
-
-                    Log.d("ken", "$weatherResponse")
+                    
 
                     val temperature = weatherResponse?.main?.temp
                     val weatherMain = weatherResponse?.weather?.get(0)?.main
