@@ -14,6 +14,7 @@ import com.example.climago.AdapterLocais
 import com.example.climago.MapsActivity
 import com.example.climago.R
 import com.example.climago.AUXILIAR.WeatherResponse
+import com.example.climago.Helper
 import com.example.climago.databinding.FragmentLocaisBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.moshi.Moshi
@@ -51,7 +52,8 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
 
     //manda as listas pro adapter
     private fun initRecyclerView(){
-        Log.d("Recycle","Verificando; $cityNames --- $TemperatureValues")
+        Log.d("dog","Verificando; ${cityNames.last()} --- ${TemperatureValues.last()}")
+        pacote(cityNames.last(),TemperatureValues.last())
         binding.RCListaLocais.layoutManager = LinearLayoutManager(requireContext())
         binding.RCListaLocais.setHasFixedSize(true)
         binding.RCListaLocais.adapter = AdapterLocais(getList(), getTemp())
@@ -139,7 +141,18 @@ class LocaisFragment : Fragment(R.layout.fragment_locais), CoroutineScope by Mai
 
             // Chamamos initRecyclerView somente depois que CarregarCidades tiver terminado
             initRecyclerView()
+
         }
     }
+
+private fun pacote(cidade: String, temperatura: String){
+    Log.d("dog","Dentro do pacote; $cidade --- $temperatura")
+    Helper.instance.cidade = cidade
+    Helper.instance.temperatura = temperatura
+    Helper.instance.estadoDoTempo = "Ensolarado"
+
+
+    Helper.instance.saveData()
+}
 
 }

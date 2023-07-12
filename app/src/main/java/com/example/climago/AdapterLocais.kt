@@ -30,4 +30,6 @@ class AdapterLocais(
         val textLocais: TextView = itemView.findViewById(R.id.RVtvNameLocal)
         val textTemperature: TextView = itemView.findViewById(R.id.RVbtTemperatura)
     }
+
+
 }

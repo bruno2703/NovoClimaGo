@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".InicialActivity">
+    tools:context=".InicialActivity"
+    android:id="@+id/Layout_Tela_Inicial">
 
     <ImageView
         android:id="@+id/background"
@@ -36,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="@string/_29"
+        android:text="@string/_26"
         android:textSize="80sp"
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="@+id/tvCidade"
@@ -49,7 +50,7 @@
         android:layout_height="200dp"
         android:layout_marginTop="56dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/sun"
+        android:src="@drawable/sun_clouds_icon"
         app:layout_constraintEnd_toEndOf="@+id/tvTemperatura"
         app:layout_constraintStart_toStartOf="@+id/tvTemperatura"
         app:layout_constraintTop_toBottomOf="@+id/tvTemperatura" />
